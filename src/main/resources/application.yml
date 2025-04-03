@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: lijian
+server:
+  port: 18080
+
+
+
+parameters:
+  model: "offline" #?????? online  2pass
+  hotWords: "{"???":20,"??":20,"??":30}"
+  fileUrl: "E:/project/Tool/file"
+  serverIpPort: "ws://127.0.0.1:10096"
+
+
