@@ -1,4 +1,4 @@
-package org.llijian.interview001;
+package org.lijian.interview001;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,4 +1,4 @@
-package org.llijian.interview001.config;
+package org.lijian.interview001.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -24,8 +24,8 @@ public class WebSocketConfig {
     }
 
     @Bean
-    public org.springframework.core.task.TaskExecutor webSocketTaskExecutor() {
-        org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor executor = new org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor();
+    public ThreadPoolTaskExecutor webSocketTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(10);
         executor.setQueueCapacity(25);

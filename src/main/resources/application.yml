@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB      # ?????????
+      max-request-size: 100MB   # ?????????
   application:
     name: lijian
 server:
@@ -6,9 +10,12 @@ server:
 
 
 
+
+
+
 parameters:
   model: "offline" #?????? online  2pass
-  hotWords: "{"???":20,"??":20,"??":30}"
+  hotWords: '{"??1":20,"??2":20,"??3":30}'
   fileUrl: "E:/project/Tool/file"
   serverIpPort: "ws://127.0.0.1:10096"
 

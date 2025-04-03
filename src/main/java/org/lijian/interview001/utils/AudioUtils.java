@@ -1,6 +1,8 @@
-package com.example.lijian.utils;
+package org.lijian.interview001.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sound.sampled.*;
 import java.io.ByteArrayInputStream;
@@ -8,8 +10,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
-@Slf4j
+//@Slf4j
 public class AudioUtils {
+
+
+
+    private static final Logger log = LoggerFactory.getLogger(AudioUtils.class);
 
     /**
      * 将音频文件转换为PCM格式

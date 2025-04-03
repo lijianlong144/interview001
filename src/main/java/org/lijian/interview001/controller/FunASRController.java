@@ -1,8 +1,9 @@
-package org.llijian.interview001.controller;
+package org.lijian.interview001.controller;
 
-import com.example.lijian.service.FunASRService;
-import com.example.lijian.utils.AudioUtils;
-import lombok.extern.slf4j.Slf4j;
+import org.lijian.interview001.service.FunASRService;
+import org.lijian.interview001.utils.AudioUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +23,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/asr")
 public class FunASRController {
+
+    private static final Logger log = LoggerFactory.getLogger(FunASRController.class);
 
     private final FunASRService funASRService;
 

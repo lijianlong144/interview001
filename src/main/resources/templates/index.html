@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FunASR 语音识别</title>
+  <style>
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background-color: white;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .upload-area {
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 20px;
+      background-color: #fafafa;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .upload-area:hover {
+      border-color: #1890ff;
+      background-color: #f0f7ff;
+    }
+    .upload-area.dragging {
+      border-color: #1890ff;
+      background-color: #e6f7ff;
+    }
+    #fileInput {
+      display: none;
+    }
+    .btn {
+      background-color: #1890ff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #40a9ff;
+    }
+    .btn:disabled {
+      background-color: #d9d9d9;
+      cursor: not-allowed;
+    }
+    .result-container {
+      margin-top: 30px;
+    }
+    .result-box {
+      background-color: #fafafa;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      padding: 15px;
+      min-height: 100px;
+    }
+    .file-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      background-color: #f0f7ff;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .file-name {
+      flex-grow: 1;
+      margin-left: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .loading {
+      text-align: center;
+      margin: 20px 0;
+      color: #1890ff;
+    }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(24, 144, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #1890ff;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>FunASR 语音识别</h1>
+
+  <div class="upload-area" id="uploadArea">
+    <p>点击或拖放音频文件到此处上传</p>
+    <p style="font-size: 12px; color: #999;">支持 .wav, .mp3, .m4a, .flac 等格式</p>
+    <input type="file" id="fileInput" accept="audio/*">
+  </div>
+
+  <div id="fileInfo" style="display: none;" class="file-info">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM11 7H13V13H16L12 17L8 13H11V7Z" fill="#1890ff"/>
+    </svg>
+    <span id="fileName" class="file-name"></span>
+    <button id="removeFile" class="btn" style="padding: 5px 10px; margin-left: 10px;">移除</button>
+  </div>
+
+  <div style="text-align: center;">
+    <button id="recognizeBtn" class="btn" disabled>开始识别</button>
+  </div>
+
+  <div id="loadingIndicator" class="loading" style="display: none;">
+    <div class="spinner"></div>
+    <span>识别中，请稍候...</span>
+  </div>
+
+  <div class="result-container">
+    <h3>识别结果</h3>
+    <div id="resultBox" class="result-box">
+      <p style="color: #999; text-align: center;">识别结果将显示在这里</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 获取DOM元素
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const fileInfo = document.getElementById('fileInfo');
+  const fileName = document.getElementById('fileName');
+  const removeFileBtn = document.getElementById('removeFile');
+  const recognizeBtn = document.getElementById('recognizeBtn');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const resultBox = document.getElementById('resultBox');
+
+  // 上传区域点击事件
+  uploadArea.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  // 拖放支持
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragging');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragging');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragging');
+
+    if (e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (file.type.startsWith('audio/')) {
+        handleFileSelect(file);
+      } else {
+        alert('请上传音频文件');
+      }
+    }
+  });
+
+  // 文件选择处理
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      handleFileSelect(file);
+    }
+  });
+
+  // 处理文件选择
+  function handleFileSelect(file) {
+    fileName.textContent = file.name;
+    fileInfo.style.display = 'flex';
+    recognizeBtn.disabled = false;
+  }
+
+  // 移除文件
+  removeFileBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    fileInfo.style.display = 'none';
+    recognizeBtn.disabled = true;
+  });
+
+  // 开始识别
+  recognizeBtn.addEventListener('click', async () => {
+    if (!fileInput.files[0]) {
+      alert('请先选择一个音频文件');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    // 显示加载指示器
+    loadingIndicator.style.display = 'block';
+    resultBox.innerHTML = '<p style="color: #999; text-align: center;">识别中，请稍候...</p>';
+    recognizeBtn.disabled = true;
+
+    try {
+      const response = await fetch('/api/asr/recognize', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        resultBox.textContent = data.result || '无识别结果';
+      } else {
+        resultBox.innerHTML = `<p style="color: red;">识别失败: ${data.message || '未知错误'}</p>`;
+      }
+    } catch (error) {
+      resultBox.innerHTML = `<p style="color: red;">请求错误: ${error.message}</p>`;
+      console.error('识别请求错误:', error);
+    } finally {
+      loadingIndicator.style.display = 'none';
+      recognizeBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
